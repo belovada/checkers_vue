@@ -8,8 +8,10 @@
       <TableCell
         v-for="(cell, cellIndex) in row"
         :key="rowIndex + '-' + cellIndex + '-' + cell"
-        :data="{figureType: cell}"
+        :data="{figureType: cell, cx: cellIndex, cy: rowIndex}"
+        :class="{'checkers-table__cell--highlight': tableHighlight[rowIndex][cellIndex] === 1}"
         class="checkers-table__cell"
+        @showWay="showWay"
       />
     </div>
   </div>
@@ -21,7 +23,30 @@
   import { useMainStore } from "@/store";
 
   const store = useMainStore();
-  const { table } = storeToRefs(store);
+  const { table, tableHighlight } = storeToRefs(store);
+
+  function showWay(data){
+    const {ways}=data;
+
+    const tempArr = [
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+    ];
+
+    ways.forEach((way) => {
+      tempArr[way.cy][way.cx]=1;
+    });
+
+    store.$patch({
+      tableHighlight: tempArr,
+    });
+  }
 </script>
 
 <style lang="less">
@@ -45,6 +70,22 @@
       &:nth-child(2n + 1) {
         .checkers-table__cell:nth-child(2n) {
           background-color: @brown;
+        }
+      }
+    }
+     &__cell {
+      position: relative;
+
+      &--highlight {
+        &::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: @green;
+          opacity: 0.5;
         }
       }
     }

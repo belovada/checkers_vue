@@ -7,12 +7,15 @@
         'table-cell__figure--white': figureType === 1,
         'table-cell__figure--black': figureType === 2
       }"
-    />
+      @click="showWay"
+    ></div>
   </div>
 </template>
 
 <script setup>
   import { ref } from "vue";
+
+  const emit = defineEmits(["showWay"]);
 
   const props = defineProps({
     data: {
@@ -22,6 +25,40 @@
   });
 
   const figureType = ref(props.data.figureType);
+  const cx = ref(props.data.cx);
+  const cy = ref(props.data.cy);
+
+  function onTable(way) {
+    const { cx, cy } = way;
+
+    return cx >= 0 && cx < 8 && cy >= 0 && cy < 8;
+  }
+
+  function showWay(){
+    let ways = [
+      {
+        position: "topLeft",
+        cx: cx.value - 1,
+        cy: cy.value - 1,
+      },
+      {
+        position: "topRight",
+        cx: cx.value + 1,
+        cy: cy.value - 1,
+      },
+      {
+        position: "bottomLeft",
+        cx: cx.value - 1,
+        cy: cy.value + 1,
+      },
+      {
+        position: "bottomRight",
+        cx: cx.value + 1,
+        cy: cy.value + 1,
+      },
+    ].filter((item) => onTable(item));
+    emit("showWay", { ways });
+  };
 </script>
 
 <style lang="less">

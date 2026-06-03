@@ -8,10 +8,14 @@
       <TableCell
         v-for="(cell, cellIndex) in row"
         :key="rowIndex + '-' + cellIndex + '-' + cell"
-        :data="{figureType: cell, cx: cellIndex, cy: rowIndex}"
-        :class="{'checkers-table__cell--highlight': tableHighlight[rowIndex][cellIndex] === 1}"
+        :data="{ figureType: cell, cx: cellIndex, cy: rowIndex }"
+        :class="{
+          'checkers-table__cell--highlight':
+            tableHighlight[rowIndex][cellIndex] === 1,
+        }"
         class="checkers-table__cell"
         @showWay="showWay"
+        @moveChecker="moveChecker"
       />
     </div>
   </div>
@@ -23,10 +27,10 @@
   import { useMainStore } from "@/store";
 
   const store = useMainStore();
-  const { table, tableHighlight } = storeToRefs(store);
+  const { table, tableHighlight, currentChecker } = storeToRefs(store);
 
-  function showWay(data){
-    const {ways}=data;
+  function showWay(data) {
+    const { ways, current } = data;
 
     const tempArr = [
       [0, 0, 0, 0, 0, 0, 0, 0],
@@ -43,9 +47,30 @@
       tempArr[way.cy][way.cx]=1;
     });
 
-    store.$patch({
+     store.$patch({
       tableHighlight: tempArr,
+      currentChecker: current,
     });
+  }
+
+  function moveChecker(current) {
+    if (!currentChecker.value) return;
+
+    const { cx, cy } = current;
+    //если ячейка подсвечена, туда можно идти
+    if (tableHighlight.value[cy][cx] === 1) {
+      //обновляем store
+      store.$patch((state) => {
+        //удаляем шашку с предыдущего места
+        state.table[currentChecker.value.cy][currentChecker.value.cx] = 0;
+        //устанавливаем шашку в новое место
+        state.table[cy][cx] = currentChecker.value.figureType;
+      });
+      //обнуляем текущую шашку
+      store.resetCurrentChecker();
+      //сбрасываем подсветку
+      store.resetTableHighlight();
+    }
   }
 </script>
 

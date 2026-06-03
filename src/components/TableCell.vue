@@ -1,21 +1,25 @@
 <template>
-  <div class="table-cell">
+  <div class="table-cell" @click="moveChecker">
     <div
       v-if="figureType !== 0"
       class="table-cell__figure"
       :class="{
         'table-cell__figure--white': figureType === 1,
-        'table-cell__figure--black': figureType === 2
+        'table-cell__figure--black': figureType === 2,
       }"
-      @click="showWay"
-    ></div>
+      @click.stop="showWay"
+    />
   </div>
 </template>
 
 <script setup>
-  import { ref } from "vue";
+  import { ref, reactive } from "vue";
+  import { storeToRefs } from "pinia";
+  import { useMainStore } from "@/store";
 
-  const emit = defineEmits(["showWay"]);
+  const emit = defineEmits(["showWay, moveChecker"]);
+  const store = useMainStore();
+  const { table } = storeToRefs(store);
 
   const props = defineProps({
     data: {
@@ -25,13 +29,46 @@
   });
 
   const figureType = ref(props.data.figureType);
+
   const cx = ref(props.data.cx);
   const cy = ref(props.data.cy);
+  const current = reactive({
+    cx: cx.value,
+    cy: cy.value,
+    figureType: figureType.value,
+  });
 
   function onTable(way) {
     const { cx, cy } = way;
 
     return cx >= 0 && cx < 8 && cy >= 0 && cy < 8;
+  }
+
+  // метод moveCalculate для расчёта возможных перемещений
+  function moveCalculate(ways) {
+    //доступные направления для каждого цвета шашек
+    const availableWays = {
+      1: ["topLeft", "topRight"],
+      2: ["bottomLeft", "bottomRight"],
+    };
+
+    //отфильтрованный массив разрешённых перемещений
+    const availableArr = [];
+
+    ways.forEach((way) => {
+      const { cx, cy, position } = way;
+      const tableCell = table.value[cy][cx];
+      const isAllowed = availableWays[figureType.value].includes(position);
+
+      //ячейка пуста, но неверное направление
+      if (tableCell === 0 && !isAllowed) return;
+      //ячейка пуста, но верное направление
+      else if (tableCell === 0 && isAllowed) {
+        return availableArr.push(way);
+      }
+    });
+
+    return availableArr;
   }
 
   function showWay(){
@@ -57,8 +94,12 @@
         cy: cy.value + 1,
       },
     ].filter((item) => onTable(item));
-    emit("showWay", { ways });
+    ways = moveCalculate(ways);
+    emit("showWay", { ways, current });
   };
+    function moveChecker() {
+      emit("moveChecker", current);
+    };
 </script>
 
 <style lang="less">

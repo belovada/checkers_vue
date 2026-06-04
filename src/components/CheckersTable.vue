@@ -14,8 +14,8 @@
             tableHighlight[rowIndex][cellIndex] === 1,
         }"
         class="checkers-table__cell"
-        @showWay="showWay"
-        @moveChecker="moveChecker"
+        @showWay="useShowWay"
+        @moveChecker="useMoveChecker"
       />
     </div>
   </div>
@@ -26,52 +26,11 @@
   import { storeToRefs } from "pinia";
   import { useMainStore } from "@/store";
 
+  import { useShowWay } from "@/composables/useShowWay.js";
+  import { useMoveChecker } from "@/composables/useMoveChecker.js";
+
   const store = useMainStore();
-  const { table, tableHighlight, currentChecker } = storeToRefs(store);
-
-  function showWay(data) {
-    const { ways, current } = data;
-
-    const tempArr = [
-      [0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0],
-    ];
-
-    ways.forEach((way) => {
-      tempArr[way.cy][way.cx]=1;
-    });
-
-     store.$patch({
-      tableHighlight: tempArr,
-      currentChecker: current,
-    });
-  }
-
-  function moveChecker(current) {
-    if (!currentChecker.value) return;
-
-    const { cx, cy } = current;
-    //если ячейка подсвечена, туда можно идти
-    if (tableHighlight.value[cy][cx] === 1) {
-      //обновляем store
-      store.$patch((state) => {
-        //удаляем шашку с предыдущего места
-        state.table[currentChecker.value.cy][currentChecker.value.cx] = 0;
-        //устанавливаем шашку в новое место
-        state.table[cy][cx] = currentChecker.value.figureType;
-      });
-      //обнуляем текущую шашку
-      store.resetCurrentChecker();
-      //сбрасываем подсветку
-      store.resetTableHighlight();
-    }
-  }
+  const { table, tableHighlight } = storeToRefs(store);
 </script>
 
 <style lang="less">

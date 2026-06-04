@@ -26,6 +26,11 @@ export const useMainStore = defineStore("main", () => {
 
   const currentChecker = ref(null);
 
+  const currentPlayer = ref(1);
+  function changePlayer() {
+    currentPlayer.value = currentPlayer.value === 1 ? 2 : 1;
+  }
+
   function resetCurrentChecker() {
     currentChecker.value = null;
   }
@@ -49,5 +54,7 @@ export const useMainStore = defineStore("main", () => {
     currentChecker,
     resetCurrentChecker,
     resetTableHighlight,
+    currentPlayer,
+    changePlayer,
   };
 });

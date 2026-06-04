@@ -7,7 +7,7 @@
         'table-cell__figure--white': figureType === 1,
         'table-cell__figure--black': figureType === 2,
       }"
-      @click.stop="showWay"
+      @click.stop="FindWays"
     />
   </div>
 </template>
@@ -16,10 +16,11 @@
   import { ref, reactive, computed } from "vue";
   import { storeToRefs } from "pinia";
   import { useMainStore } from "@/store";
+  import { useFindWays } from "@/composables/useFindWays";
 
   const emit = defineEmits(["showWay", "moveChecker"]);
   const store = useMainStore();
-  const { table, currentChecker } = storeToRefs(store);
+  const { currentChecker } = storeToRefs(store);
 
   const props = defineProps({
     data: {
@@ -46,90 +47,12 @@
       currentChecker.value.cy === current.cy
   );
 
-  function onTable(way) {
-    const { cx, cy } = way;
-    return cx >= 0 && cx < 8 && cy >= 0 && cy < 8;
+  function FindWays() {
+    useFindWays(emit, cx, cy, figureType, current)
   }
-
-  // метод moveCalculate для расчёта возможных перемещений
-  function moveCalculate(ways) {
-    //доступные направления для каждого цвета шашек
-    const availableWays = {
-      1: ["topLeft", "topRight"],
-      2: ["bottomLeft", "bottomRight"],
-    };
-
-    //отфильтрованный массив разрешённых перемещений
-    const availableArr = [];
-
-    ways.forEach((way) => {
-      const { cx, cy, position } = way;
-      const tableCell = table.value[cy][cx];
-      const isAllowed = availableWays[figureType.value].includes(position);
-
-      //ячейка пуста, но неверное направление
-      if (tableCell === 0 && !isAllowed) return;
-      //ячейка пуста, но верное направление
-      else if (tableCell === 0 && isAllowed) {
-        return availableArr.push(way);
-      }
-      //ячейка не пуста и там фигура противоположного цвета
-      else if (tableCell && tableCell !== figureType.value) {
-        return availableArr.push(editWay(way));
-      }
-    });
-
-    return availableArr;
-  }
-
-  function canMove(way) {
-    const { cx, cy } = way;
-    return onTable(way) && table.value[cy][cx] === 0;
-  }
-
-  function showWay(){
-    let ways = [
-      {
-        position: "topLeft",
-        cx: cx.value - 1,
-        cy: cy.value - 1,
-      },
-      {
-        position: "topRight",
-        cx: cx.value + 1,
-        cy: cy.value - 1,
-      },
-      {
-        position: "bottomLeft",
-        cx: cx.value - 1,
-        cy: cy.value + 1,
-      },
-      {
-        position: "bottomRight",
-        cx: cx.value + 1,
-        cy: cy.value + 1,
-      },
-    ].filter((item) => onTable(item));
-    ways = moveCalculate(ways).filter((item) => canMove(item));
-    emit("showWay", { ways, current });
-  };
-
-  function editWay(way) {
-    const { cx, cy, position } = way;
-
-    const options = {
-      topLeft: (x, y) => ({ cx: x - 1, cy: y - 1 }),
-      topRight: (x, y) => ({ cx: x + 1, cy: y - 1 }),
-      bottomLeft: (x, y) => ({ cx: x - 1, cy: y + 1 }),
-      bottomRight: (x, y) => ({ cx: x + 1, cy: y + 1 }),
-    };
-
-    return Object.assign({ position }, options[position](cx, cy));
-  }
-
   function moveChecker() {
     emit("moveChecker", current);
-  };
+  }
 </script>
 
 <style lang="less">

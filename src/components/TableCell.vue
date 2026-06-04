@@ -17,7 +17,7 @@
   import { storeToRefs } from "pinia";
   import { useMainStore } from "@/store";
 
-  const emit = defineEmits(["showWay, moveChecker"]);
+  const emit = defineEmits(["showWay", "moveChecker"]);
   const store = useMainStore();
   const { table } = storeToRefs(store);
 
@@ -97,9 +97,10 @@
     ways = moveCalculate(ways);
     emit("showWay", { ways, current });
   };
-    function moveChecker() {
-      emit("moveChecker", current);
-    };
+
+  function moveChecker() {
+    emit("moveChecker", current);
+  };
 </script>
 
 <style lang="less">
